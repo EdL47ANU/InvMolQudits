@@ -10,12 +10,12 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 # git clone this https://github.com/EdL47ANU/SolutionSpace is activley worked on. 
 
 
-with open('D-0.150.1450.005_B1002455_N200QuditFull.pkl', 'rb') as f:
+with open('DEPlot.pkl', 'rb') as f:
     DCoords, ECoords, DboolsFrqTot = pickle.load(f)
 DEPlotter1Bool(DCoords, ECoords, DboolsFrqTot, Verbose = 1)
 exit("Plotted?")
 
-with open('IdealDE0.13_-0.0346_B1002991_N1600.pkl', 'rb') as f:
+with open('FieldOrientations.pkl', 'rb') as f:
     B, OrientationVecs, Bools = pickle.load(f)
 BRotPlotter1Bool(B, OrientationVecs, Bools, 0.0)
 exit("Plotted?")
