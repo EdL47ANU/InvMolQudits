@@ -14,7 +14,7 @@ from matplotlib.gridspec import GridSpec
 # Then append a true false boolean to a list of solution space, 
 # That being the Mag Field's orientation,  
 # And then plot the solution space.
-
+#Don't go off what wubits exist in lit review. go off what would make sense.
 def DESearch1Bool(D, B, gs, Orientations):
     DCoords = []
     ECoords = []
@@ -147,13 +147,51 @@ def TiFrqvsMagField(H, BVals, OrientationVec):
     BasisMix = np.array(BasisMix)
     return Frqs, TIs, BasisMix
 
+def BRotPlotter1Bool(BVals, OrientationVecs, Bools, fidelity):
+    Bools = np.array(Bools)
+    NewBools = np.zeros((len(OrientationVecs)))
+    for i in range(len(Bools[0])):
+        NewBools[i] = np.sum(Bools[:, i])*100*0.4 / len(Bools)
+    max = np.argmax(NewBools)
+    print(OrientationVecs[max], "Max Success Rate = ", np.max(NewBools))
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    for i in range(len(OrientationVecs)):
+        if NewBools[i] > fidelity:
+            #print(OrientationVecs[i], NewBools[i])
+            #scatter = ax.scatter(OrientationVecs[i][0], OrientationVecs[i][1], OrientationVecs[i][2], marker = 'D', c = NewBools[i], cmap=plt.cm.rainbow)
+            ax.scatter(OrientationVecs[i][0], OrientationVecs[i][1], OrientationVecs[i][2], marker = 'D', color = 'black', s=40, zorder =10)
+            ax.scatter(OrientationVecs[i][0], OrientationVecs[i][1], -1, marker = 'o', alpha = 0.2, color = 'grey', s = 40, zorder=1)
+            ax.scatter(OrientationVecs[i][0], 1, OrientationVecs[i][2], marker = 'o', alpha = 0.2, color = 'grey', s = 40, zorder=1)
+            ax.scatter(-1, OrientationVecs[i][1], OrientationVecs[i][2], marker = 'o', alpha = 0.2, color = 'grey', s = 40, zorder=1)
+    #colorbar = fig.colorbar(scatter, ax=ax, label='% Success Rate for across Magnetic Field Range')
+    #colorbar.set_label('% Success Across Magnetic Field Range', fontsize=18)
+    #Max = np.argmax(success)
+    ax.set_xlabel(r'$\vec{B_X}/|B|$', fontsize=24)
+    ax.set_ylabel(r'$\vec{B_Y}/|B|$', fontsize=24)
+    ax.set_zlabel(r'$\vec{B_Z}/|B|$', fontsize=24)
+    ax.set_xlim(-1, 1)
+    ax.set_ylim(-1, 1)
+    ax.set_zlim(-1, 1)
+    #set ticks at only 1 and -1 on all axes. 
+    ax.set_xticks([-1, -0.5, 0.5, 1])
+    ax.set_yticks([-1, -0.5, 0.5, 1])
+    ax.set_zticks([-1, -0.5, 0.5, 1])
+    # Increase the size of the ticks
+    ax.tick_params(axis='both', which='major', labelsize=18)
+    #ADd a floating marker in the top left that says 'b)'
+    #TypeError: text() missing 1 required positional argument: 's'
+    #plt.text(-1, 1, -1,'b' , fontsize=20)
+    #plt.title('Orientations of Magnetic Field with Respect to Hydrogen System', fontsize=20)
+    plt.show()
+
 def TiFrqvsMagFieldPlot(Ti, Frqs, BasisMix, BVals, Frq_Lower = 8000, Frq_Upper = 10000):
     #Two plots, one of Ti vs MagField, one of Frq vs MagField
     fig, ax = plt.subplots(2,1, sharex=True, figsize=(10, 8))
     #plotting Ti 0,1 0,2 2,3 where Ti is a 4x4 mstrix
-    ax[0].plot(BVals, Ti[:,0], label = r'$ | \langle 00 | \hat{S}_x + \hat{S}_y |10 \rangle|^2 $')
-    ax[0].plot(BVals, Ti[:,1], label = r'$ | \langle 10 | \hat{S}_x + \hat{S}_y |11 \rangle |^2 $')
-    ax[0].plot(BVals, Ti[:,2], label = r'$ | \langle 01 | \hat{S}_x + \hat{S}_y |11 \rangle |^2 $')
+    ax[0].plot(BVals, Ti[:,0], label = r'$ | \langle 00 | \hat{S}_x + \hat{S}_y |10 \rangle|^2 $', color = 'blue')
+    ax[0].plot(BVals, Ti[:,1], label = r'$ | \langle 10 | \hat{S}_x + \hat{S}_y |11 \rangle |^2 $', color = 'green')
+    ax[0].plot(BVals, Ti[:,2], label = r'$ | \langle 01 | \hat{S}_x + \hat{S}_y |11 \rangle |^2 $', color = 'black')
     Threshold = 0.15*np.ones(len(BVals))
     ax[0].fill_between(BVals, Threshold, color = 'red', alpha = 0.3)
     ax[0].plot(BVals, Threshold, color = 'black')
@@ -166,7 +204,9 @@ def TiFrqvsMagFieldPlot(Ti, Frqs, BasisMix, BVals, Frq_Lower = 8000, Frq_Upper =
     """
     if B_above_Lower.size > 0 and B_below_Upper.size > 0:
         ax[0].axvspan(B_above_Lower[0], B_below_Upper[-1], color='green', alpha=0.3)
-        ax[1].axvspan(B_above_Lower[0], B_below_Upper[-1], color='green', alpha=0.3)    
+        ax[1].axvspan(B_above_Lower[0], B_below_Upper[-1], color='green', alpha=0.3)
+        
+    
     #Vert line that boarders the green region. 
     ax[0].axvline(B_above_Lower[0], color='black', linestyle='--')
     ax[0].axvline(B_below_Upper[-1], color='black', linestyle='--')
@@ -175,11 +215,15 @@ def TiFrqvsMagFieldPlot(Ti, Frqs, BasisMix, BVals, Frq_Lower = 8000, Frq_Upper =
     """
     TenkHz = Frq_Upper*np.ones(len(BVals))
     EightkHz = Frq_Lower*np.ones(len(BVals))
+    #MHz to GHz conversion
+    EightkHz = EightkHz/1000
+    TenkHz = TenkHz/1000
+    Frqs = Frqs/1000
     HzMax = max(Frqs[:,1])*np.ones(len(BVals))
     ax[1].tick_params(axis='x', which='major', labelsize=16)
-    ax[1].plot(BVals, Frqs[:,0], label = r'$\omega_{10-00}$')
-    ax[1].plot(BVals, Frqs[:,1], label = r'$\omega_{11-10}$')
-    ax[1].plot(BVals, Frqs[:,2], label = r'$\omega_{11-01}$')
+    ax[1].plot(BVals, Frqs[:,0], label = r'$\omega_{10-00}$', color = 'blue')
+    ax[1].plot(BVals, Frqs[:,1], label = r'$\omega_{11-10}$', color = 'green')
+    ax[1].plot(BVals, Frqs[:,2], label = r'$\omega_{11-01}$', color = 'black')
     ax[1].fill_between(BVals, EightkHz, color = 'red', alpha = 0.3)
     ax[1].fill_between(BVals, HzMax, TenkHz, color = 'red', alpha = 0.3)
     ax[1].plot(BVals, TenkHz, color = 'black')
@@ -191,16 +235,17 @@ def TiFrqvsMagFieldPlot(Ti, Frqs, BasisMix, BVals, Frq_Lower = 8000, Frq_Upper =
     ax[0].set_xlim(0, 300)
     ax[1].set_xlim(0, 300)
     
-    ax[0].set_ylabel('Transition Intensity [a.u.]', size = 16)
-    ax[1].set_xlabel('Magnetic Field [mT]', size = 18)
-    ax[1].set_ylabel('Transition Frequency [MHz]', size = 16)
+    ax[0].set_ylabel('Transition Intensity [a.u.]', size = 21)
+    ax[1].set_xlabel('Magnetic Field [mT]', size = 24)
+    ax[1].set_ylabel('Transition Frequency [GHz]', size = 21)
     # Add legends to each subplot
-    ax[0].legend(fontsize = 14)
-    ax[1].legend(fontsize = 14)
-    
+    ax[0].legend(fontsize = 20)
+    ax[1].legend(fontsize = 20)
+    #Set larger size of the ticks
+    ax[1].tick_params(axis='both', which='major', labelsize=20)
+    ax[0].tick_params(axis='both', which='major', labelsize=20)
     plt.tight_layout()
     plt.show()
-
 
 def TiFrqvsOrientation(H, Orientations):
     Frqs = []
@@ -225,7 +270,6 @@ def TiFrqvsOrientation(H, Orientations):
     index = np.array(index)
     print(np.sum(index))
     return Frqs, TIs, vecs, index
-
 
 def TiFrqvsOrientationPlot(Ti, Frqs, vecs, index):
     # Create a figure with a GridSpec layout
@@ -286,7 +330,6 @@ def TiFrqvsOrientationPlot(Ti, Frqs, vecs, index):
     plt.tight_layout()
     plt.show()
 
-
 def DEPlotter1Bool(DCoords,ECoords,DboolsTot, Verbose = 0):
     List = []
     D = []
@@ -300,12 +343,12 @@ def DEPlotter1Bool(DCoords,ECoords,DboolsTot, Verbose = 0):
                 bools.append(DboolsTot[i][j]*100)
                 if Verbose == 1:
                     List.append([DCoords[i], ECoords[i][j], DboolsTot[i][j]])
-    scatter = plt.scatter(D, E, c=bools, cmap='rainbow', linewidths=1)
+    scatter = plt.scatter(D, E, c=bools, cmap='rainbow', linewidths=4)
     D_line = np.linspace(min(DCoords), max(DCoords), 10)
     E_line = D_line / 3
     plt.plot(D_line, E_line, color='black', label = '|E| = |D/3|', linewidth = 3)
     plt.plot(D_line, -E_line, color='black', linewidth = 3)
-    plt.scatter(0.0977, 0.025, color = 'black', marker = 'x', linewidths=3, s=100)
+    plt.scatter(0.0977, 0.025, color = 'black', marker = 'x', linewidths=3, s=200)
     if Verbose == 1:
         if List == []:
             print("No successful solutions")
@@ -317,14 +360,16 @@ def DEPlotter1Bool(DCoords,ECoords,DboolsTot, Verbose = 0):
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     colorbar = plt.colorbar(scatter, label = '% Success Metric')
-    colorbar.set_label('% Success Metric', fontsize = 20)
-    plt.legend(by_label.values(),by_label.keys(), fontsize = 18, loc = 'upper center')
-    plt.xlabel(r'D [$cm^{-1}$]', fontsize = 20)
-    plt.ylabel(r'E [$cm^{-1}$]', fontsize = 20)
-    #plt.title('Solution Space for D and E', fontsize = 32)
-    plt.tick_params(axis='both', which='major', labelsize=16)
-    plt.show()
+    colorbar.set_label('% Success Metric', fontsize = 28)
+    colorbar.ax.tick_params(labelsize=20)
+    #ticks on colorbar size
 
+    plt.legend(by_label.values(),by_label.keys(), fontsize = 26, loc = 'upper center')
+    plt.xlabel(r'D [$cm^{-1}$]', fontsize = 28)
+    plt.ylabel(r'E [$cm^{-1}$]', fontsize = 28)
+    #plt.title('Solution Space for D and E', fontsize = 32)
+    plt.tick_params(axis='both', which='major', labelsize=24)
+    plt.show()
 
 #H = H0(D = DEcm_ZfsMHZ(0.13, -0.0346), gs = np.diag([2.0023, 2.0023, 2.0023]), coil = 162, SpinOp = SpinOp4, TransIntVal = 0.075, FrqMidVal = 9000, FrqRangeVal = 1000)
 #Orientations = Orientations(1600)
